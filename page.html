@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Emoji Tic Tac Toe</title>
+  <style>
+    #board { display: grid; grid-template-columns: repeat(3, 60px); gap: 5px; }
+    .cell { width: 60px; height: 60px; font-size: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #333; cursor: pointer; }
+    #restart { margin-top: 10px; display: none; }
+    button {  
+  display: none;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #4CAF50; /* Green */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+  </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+  const categories = {
+    Animals: ["🐶", "🐱", "🐵", "🐰"],
+    Food: ["🍕", "🍟", "🍔", "🍩"]
+  };
+
+  let board = Array(9).fill(null);
+  let turn = "P1";
+  let selected = { P1: "Animals", P2: "Food" };
+  let history = { P1: [], P2: [] };
+  let winner = null;
+
+  const boardEl = document.getElementById("board");
+  const statusEl = document.getElementById("status");
+  const restartBtn = document.getElementById("restart");
+
+  function renderBoard() {
+    boardEl.innerHTML = "";
+    board.forEach((cell, i) => {
+      const div = document.createElement("div");
+      div.className = "cell";
+      div.innerText = cell ? cell.emoji : "";
+      div.onclick = () => handleClick(i);
+      boardEl.appendChild(div);
+    });
+  }
+
+  function handleClick(i) {
+    if (board[i] || winner) return;
+
+    const emojiList = categories[selected[turn]];
+    const emoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+    const q = [...history[turn]];
+
+    if (q.length === 3) {
+      const oldIndex = q[0];
+      if (oldIndex === i) return;
+      board[oldIndex] = null;
+      q.shift();
+    }
+
+    board[i] = { emoji, owner: turn };
+    q.push(i);
+    history[turn] = q;
+
+    if (checkWin()) {
+      winner = turn;
+      statusEl.innerText = `${turn} Wins!`;
+      restartBtn.style.display = "block";
+    } else {
+      turn = turn === "P1" ? "P2" : "P1";
+      statusEl.innerText = `${turn}'s Turn (${selected[turn]})`;
+    }
+
+    renderBoard();
+  }
+
+  function checkWin() {
+    const winLines = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    return winLines.some(line =>
+      line.every(i => board[i] && board[i].owner === turn)
+    );
+  }
+
+  restartBtn.onclick = () => {
+    board = Array(9).fill(null);
+    turn = "P1";
+    winner = null;
+    history = { P1: [], P2: [] };
+    statusEl.innerText = "P1's Turn (Animals)";
+    restartBtn.style.display = "none";
+    renderBoard();
+  };
+
+  renderBoard();
+});
+
+  </script>
+</head>
+<body>
+  <h2 id="status">P1's Turn (Animals)</h2>
+  <div id="board"></div>
+  <button id="restart">Restart</button>
+
+  <script src="tictac.js"></script>
+</body>
+</html>
